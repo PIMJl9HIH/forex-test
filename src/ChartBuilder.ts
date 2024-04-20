@@ -10,9 +10,11 @@ class ChartBuilder {
   private scale: number = 1.0;  // Initial zoom level
   private isDragging: boolean = false;
   private lastX: number = 0;  // Last mouse x position for panning
-  private lastY: number = 0;  // Last mouse y position for zooming
   private chunkStart: number; 
   private padding: number = 30;
+  private rightPadding: number = 50; // Right padding width in pixels
+  
+
 
   constructor(private canvas: HTMLCanvasElement, data: DataChunk[]) {
     this.chunkStart = data[0].ChunkStart * 1000; 
@@ -101,28 +103,33 @@ private getMaxOffsetX(): number {
 }
 
 
-  private draw(): void {
-    const canvasHeight = this.canvas.height - this.padding; // Adjust canvas height for drawing bars
-        const barWidth = 10 * this.scale;
-        const spacing = 2 * this.scale;
+private draw(): void {
+  const canvasHeight = this.canvas.height - this.padding;
+  const canvasWidth = this.canvas.width - this.rightPadding;
 
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);  // Clear entire canvas
-        this.ctx.save();  // Save the current state
+  this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Draw bars within the adjusted canvas area
-        this.ctx.beginPath();
-        this.ctx.rect(0, 0, this.canvas.width, canvasHeight);
-        this.ctx.clip();  // Clip to the upper part of the canvas
+  this.drawGrid(canvasWidth, canvasHeight);
+  this.ctx.save();
+  this.ctx.rect(0, 0, canvasWidth, canvasHeight);
+  this.ctx.clip();
 
-        for (let i = 0; i < this.bars.length; i++) {
-            const bar = this.bars[i];
-            const x = (i * (barWidth + spacing)) - this.offsetX;
-            this.drawBar(bar, x, barWidth, canvasHeight);
-        }
+  for (let i = 0; i < this.bars.length; i++) {
+      const bar = this.bars[i];
+      const x = (i * (10 * this.scale + 2)) - this.offsetX;
+      if (x < canvasWidth) {
+          this.drawBar(bar, x, 10 * this.scale, canvasHeight);
+      }
+  }
 
-        this.ctx.restore();  // Restore to include the full canvas
-        this.drawDateLabels(canvasHeight); 
+  this.ctx.restore();
+  this.drawDateLabels(canvasHeight);
+  this.drawPriceScale(canvasWidth, canvasHeight);
 }
+
+
+
+
 
 
   private drawBar(bar: Bar, x: number, width: number, canvasHeight: number): void {
@@ -162,6 +169,55 @@ private drawDateLabels(canvasHeight: number): void {
           this.ctx.fillText(dateLabel, x, canvasHeight + 20); // Position labels within the padding area
       }
   }
+}
+
+
+
+private drawPriceScale(canvasWidth: number, canvasHeight: number): void {
+  // Calculate the visible range of prices based on the current zoom level
+  const visiblePriceRange = (this.highestPrice - this.lowestPrice) / this.scale;
+  const priceStep = visiblePriceRange / 10;
+  const priceStart = this.lowestPrice;
+
+  for (let i = 0; i <= 10; i++) {
+      const price = priceStart + (priceStep * i);
+      const y = (canvasHeight * i) / 10;
+
+      // Draw price labels so they are within the visible area
+      if (y <= canvasHeight) {
+          this.ctx.fillText(price.toFixed(2), canvasWidth + 5, y + 15);
+      }
+  }
+}
+
+private drawGrid(canvasWidth: number, canvasHeight: number): void {
+  const numVerticalLines = 10; // Base number of vertical lines
+  const verticalSpacing = (canvasWidth / numVerticalLines) * this.scale; // Adjust spacing based on scale
+  const horizontalSpacing = canvasHeight / 10; // Horizontal lines remain consistent
+
+  this.ctx.fillStyle = '#fcfcfc'; // Light gray background
+  this.ctx.fillRect(0, 0, canvasWidth + this.rightPadding, canvasHeight + this.padding);
+
+  this.ctx.beginPath();
+  this.ctx.setLineDash([5, 5]); // Dashed lines
+
+  // Draw vertical grid lines based on the current horizontal scaling
+  for (let i = 0; i <= numVerticalLines; i++) {
+      const x = i * verticalSpacing;
+      this.ctx.moveTo(x, 0);
+      this.ctx.lineTo(x, canvasHeight);
+  }
+
+  // Draw horizontal grid lines
+  for (let i = 0; i <= 10; i++) {
+      const y = i * horizontalSpacing;
+      this.ctx.moveTo(0, y);
+      this.ctx.lineTo(canvasWidth, y);
+  }
+
+  this.ctx.strokeStyle = '#ddd';
+  this.ctx.stroke();
+  this.ctx.setLineDash([]); // Reset to solid lines for other drawings
 }
 
 }
