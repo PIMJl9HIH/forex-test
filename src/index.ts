@@ -1,41 +1,46 @@
 import DataFetcher from "./DataFetcher";
-import ChartBuilder from "./ChartBuilder";
-
-import { firstDataLink, Bar } from "./constants";
+import ChartManager from "./ChartManager";
+import { firstDataLink, secondDataLink } from "./constants";
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const canvas = document.getElementById("myChart") as HTMLCanvasElement;
-  const firstData = new DataFetcher(firstDataLink);
+  const canvas1 = document.getElementById("myChart") as HTMLCanvasElement;
+  const canvas2 = document.getElementById("myChart2") as HTMLCanvasElement;
+  const manager = new ChartManager();
 
-  if (!canvas) {
-    console.error("Canvas element not found");
-    return;
+  // Function to handle fetching and displaying data for a single chart
+  async function setupChart(dataLink: string, canvas: HTMLCanvasElement): Promise<void> {
+    if (!canvas) {
+      console.error("Canvas element not found");
+      return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      console.error("Failed to get canvas context");
+      return;
+    }
+
+    // Display loading message
+    ctx.save();  // Save the current canvas state
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.font = "16px Arial";
+    ctx.fillText("Loading...", 10, 50);
+
+    try {
+      const fetchData = new DataFetcher(dataLink);
+      const dataResult = await fetchData.fetchData();
+      ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the loading message
+      manager.createChart(canvas, dataResult);
+    } catch (error) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the loading message
+      ctx.fillText("Failed to load data!", 10, 50);
+      console.error(`Error fetching data for ${dataLink}:`, error);
+    } finally {
+      ctx.restore(); // Restore the canvas state
+    }
   }
 
-  try {
-    const firstDataResult = await firstData.fetchData();
-    console.log("data", firstDataResult);
-    // @ts-ignore
-    const test = firstDataResult.map((item) => {
-      return {
-        ...item,
-        Bars: item.Bars.slice(0, 1),
-      };
-    });
-
-    console.log(2222, test);
-  //   const allBars = test.flatMap((chunk) => chunk.Bars);
-
-  //   const bars: Bar[] = [
-  //     { Time: 1, Open: 100, High: 105, Low: 95, Close: 103, TickVolume: 1000 },
-  //     { Time: 2, Open: 103, High: 108, Low: 102, Close: 104, TickVolume: 1500 },
-  //     // Add more bars as needed
-  // ];
-
-  
-  //   new ChartBuilder(canvas, bars);
-    new ChartBuilder(canvas, firstDataResult);
-  } catch (error) {
-    console.error("Error in data fetching or chart building", error);
-  }
+  // Setup charts independently
+  setupChart(firstDataLink, canvas1);
+  setupChart(secondDataLink, canvas2);
 });

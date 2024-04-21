@@ -9,7 +9,6 @@ class DataFetcher {
 
   async fetchData(): Promise<DataChunk[]> {
     try {
-      console.log(222, this.url)
       const response = await fetch(this.url);
       if(!response.ok){
         throw new Error(`HTTP error! status: ${response.status}`)

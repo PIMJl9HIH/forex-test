@@ -1,7 +1,7 @@
 import { Bar, DataChunk } from "./constants";
 import { format, addSeconds, addHours, addMilliseconds } from "date-fns";
 
-class ChartBuilder {
+class Chart {
   private ctx: CanvasRenderingContext2D;
   private bars: Bar[];
   private highestPrice: number;
@@ -280,4 +280,4 @@ class ChartBuilder {
   }
 }
 
-export default ChartBuilder;
+export default Chart;

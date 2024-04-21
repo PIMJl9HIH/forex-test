@@ -1,14 +1,45 @@
 <!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My TypeScript App for Forex test</title>
+
+    <style>
+        .chartContainer {
+            display: flex;
+            margin: 20px 0;
+            justify-content: center;
+        }
+
+        #instructions {
+            font-family: Arial, sans-serif;
+            margin-top: 20px;
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 <script defer src="index.js"></script></head>
+
 <body>
     <h1>Test Forex </h1>
-    <canvas id="myChart"></canvas>
+    <div id="instructions">
+        <strong>How to interact with the chart:</strong>
+        <ul>
+            <li>Use mouse drag-n-drop to move the chart.</li>
+            <li>Use mouse scroll to navigate left/right.</li>
+            <li>Hold CTRL (or CMD on Mac) and scroll to zoom in/out.</li>
+        </ul>
+    </div>
+
+    <div class="chartContainer"><canvas id="myChart" width="800" height="400" style="border:1px solid black;"></canvas></div>
+    <div class="chartContainer"><canvas id="myChart2" class="chart" width="800" height="400" style="border:1px solid black;"></canvas></div>
+
     <script type="module" src="index.js"></script>
 </body>
+
 </html>
